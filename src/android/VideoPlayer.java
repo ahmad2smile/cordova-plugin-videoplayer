@@ -11,6 +11,7 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.media.MediaPlayer.OnVideoSizeChangedListener;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -31,7 +32,7 @@ import org.apache.cordova.PluginResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, OnPreparedListener, OnErrorListener, OnDismissListener {
+public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, OnPreparedListener, OnErrorListener, OnDismissListener, OnVideoSizeChangedListener {
 
     protected static final String LOG_TAG = "VideoPlayer";
 
@@ -206,11 +207,11 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
                 switch (scalingMode) {
                     case MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING:
                         Log.d(LOG_TAG, "setVideoScalingMode VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING");
-                        player.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+                        // player.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
                         break;
                     default:
                         Log.d(LOG_TAG, "setVideoScalingMode VIDEO_SCALING_MODE_SCALE_TO_FIT");
-                        player.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+                        // player.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
                 }
             } catch (Exception e) {
                 PluginResult result = new PluginResult(PluginResult.Status.ERROR, e.getLocalizedMessage());
@@ -285,6 +286,31 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
             result.setKeepCallback(false); // release status callback in JS side
             callbackContext.sendPluginResult(result);
             callbackContext = null;
+        }
+    }
+    
+    @Override
+    public void OnVideoSizeChanged(MediaPlayer mp, int width, int height) {
+        if(mp != null)
+        {       
+            Integer screenWidth = ((Activity) mContext).getWindowManager().getDefaultDisplay().getWidth();
+            Integer screenHeight = ((Activity) mContext).getWindowManager().getDefaultDisplay().getHeight();
+            android.view.ViewGroup.LayoutParams videoParams = getLayoutParams();
+
+
+            if (videoWidth > videoHeight)
+            {
+                videoParams.width = screenWidth;
+                videoParams.height = screenWidth * videoHeight / videoWidth;
+            }
+            else
+            {
+                videoParams.width = screenHeight * videoWidth / videoHeight;
+                videoParams.height = screenHeight;
+            }
+
+
+            setLayoutParams(videoParams);
         }
     }
 }
