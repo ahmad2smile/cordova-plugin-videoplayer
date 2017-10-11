@@ -238,8 +238,39 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
 
         dialog.setContentView(main);
         dialog.show();
-        dialog.getWindow().setAttributes(lp);
-    }
+		dialog.getWindow().setAttributes(lp);
+		
+
+		player.setOnVideoSizeChangedListener(mOnVideoSizeChangedListener);
+
+		MediaPlayer.OnVideoSizeChangedListener mOnVideoSizeChangedListener = new MediaPlayer.OnVideoSizeChangedListener() {
+
+			@Override
+			public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+
+				setFitToFillAspectRatio(mp, width, height);
+
+			}
+		};
+	}
+	
+	private void setFitToFillAspectRatio(MediaPlayer mp, int videoWidth, int videoHeight) {
+		if (mp != null) {
+			Integer screenWidth = ((Activity) mContext).getWindowManager().getDefaultDisplay().getWidth();
+			Integer screenHeight = ((Activity) mContext).getWindowManager().getDefaultDisplay().getHeight();
+			android.view.ViewGroup.LayoutParams videoParams = getLayoutParams();
+
+			if (videoWidth > videoHeight) {
+				videoParams.width = screenWidth;
+				videoParams.height = screenWidth * videoHeight / videoWidth;
+			} else {
+				videoParams.width = screenHeight * videoWidth / videoHeight;
+				videoParams.height = screenHeight;
+			}
+
+			setLayoutParams(videoParams);
+		}
+	}
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
@@ -273,30 +304,5 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
             callbackContext.sendPluginResult(result);
             callbackContext = null;
         }
-    }
-    
-    @Override
-    public void OnVideoSizeChanged(MediaPlayer mp, int width, int height) {
-        if(mp != null)
-        {       
-            Integer screenWidth = ((Activity) mContext).getWindowManager().getDefaultDisplay().getWidth();
-            Integer screenHeight = ((Activity) mContext).getWindowManager().getDefaultDisplay().getHeight();
-            android.view.ViewGroup.LayoutParams videoParams = getLayoutParams();
-
-
-            if (videoWidth > videoHeight)
-            {
-                videoParams.width = screenWidth;
-                videoParams.height = screenWidth * videoHeight / videoWidth;
-            }
-            else
-            {
-                videoParams.width = screenHeight * videoWidth / videoHeight;
-                videoParams.height = screenHeight;
-            }
-
-
-            setLayoutParams(videoParams);
-        }
-    }
+	}
 }
